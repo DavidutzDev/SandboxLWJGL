@@ -1,0 +1,50 @@
+package fr.davidutz.sandbox;
+
+import fr.davidutz.sandbox.render.RendererManager;
+import fr.davidutz.sandbox.render.elements.ImageElement;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+
+import static org.lwjgl.opengl.GL11C.*;
+
+public class SandboxMain {
+
+    private static final Window window = new Window("Sandbox LWJGL", 1280, 720);
+    private static final RendererManager rendererManager = new RendererManager(window);
+
+    public static void main(String[] args) throws IOException {
+        //Initialisation de la fenetre
+        window.create();
+
+        /* Ajouts des elements a afficher*/
+
+        rendererManager.addRenderableElement(new ImageElement("assets/elon.jpg", 200, 200, 400, 226));
+
+        /*-------------------------------*/
+
+        //Initialisation du systeme de rendu
+        rendererManager.initialize();
+
+        //Boucle de rendu
+        while (!window.shouldClose()) {
+            //Appel de la boucle de rendu
+            rendererManager.renderLoop();
+
+            //Mise a jour de la fenetre
+            window.update();
+        }
+
+        //Nettoyage des resources
+        window.destroy();
+    }
+
+    public static Window getWindow() {
+        return window;
+    }
+}
