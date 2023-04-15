@@ -4,6 +4,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GLUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -32,6 +33,7 @@ public class Window {
         GLFW.glfwDefaultWindowHints();
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE);
 
         //Creation de la fenetre
         this.glfwWindow = GLFW.glfwCreateWindow(this.windowWidth, this.windowHeight, this.windowTitle, 0, 0);
@@ -39,7 +41,11 @@ public class Window {
 
         //Configuration de la fenetre OpenGL
         GLFW.glfwMakeContextCurrent(this.glfwWindow);
+        GLFW.glfwSwapInterval(1);
         GL.createCapabilities();
+
+        // Message de debug
+        GLUtil.setupDebugMessageCallback();
 
         //Affichage de la fenetre
         GLFW.glfwShowWindow(this.glfwWindow);
