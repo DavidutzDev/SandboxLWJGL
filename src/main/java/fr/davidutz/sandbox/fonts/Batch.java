@@ -99,7 +99,14 @@ public class Batch {
         float x1 = x + scale * charInfo.getWidth();
         float y1 = y + scale * charInfo.getHeight();
 
-        float ux0 = charInfo.getTextureCoordinates()[0].x(); float uy0 = charInfo.getTextureCoordinates()[0].y();
+        System.out.println("-------------------------------------------------");
+        System.out.println("Coord ux0: " + charInfo.getTextureCoordinates()[0].x());
+        System.out.println("Coord ux1: " + charInfo.getTextureCoordinates()[1].x());
+        System.out.println("Coord uy0: " + charInfo.getTextureCoordinates()[0].y());
+        System.out.println("Coord uy1: " + charInfo.getTextureCoordinates()[1].y());
+        System.out.println("hasDescender: " + charInfo.hasDescender());
+
+        float ux0 = charInfo.getTextureCoordinates()[0].x(); float uy0 = charInfo.getTextureCoordinates()[0].y() + 0.01f;
         float ux1 = charInfo.getTextureCoordinates()[1].x(); float uy1 = charInfo.getTextureCoordinates()[1].y();
 
         int index = this.size * 7;

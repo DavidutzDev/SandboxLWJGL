@@ -5,6 +5,9 @@ import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +36,7 @@ public class FontRenderer {
     }
 
     public CharInfo getCharacter(int codePoint) {
-        return this.charMap.getOrDefault(codePoint, new CharInfo(0, 0, 0, 0));
+        return this.charMap.getOrDefault(codePoint, new CharInfo(0, 0, 0, 0, false));
     }
 
     private void generateBitmap() {
@@ -44,6 +47,7 @@ public class FontRenderer {
         Graphics2D g2d = image.createGraphics();
         g2d.setFont(font);
         FontMetrics fontMetrics = g2d.getFontMetrics();
+        FontRenderContext frc = g2d.getFontRenderContext();
 
         int estimatedWidth = (int) (Math.sqrt(font.getNumGlyphs()) * font.getSize()) + 1;
         this.width = 0;
@@ -52,10 +56,12 @@ public class FontRenderer {
         int x = 0;
         int y = (int) (fontMetrics.getHeight() * 1.4f);
 
+        boolean hasGlobalDescender = (fontMetrics.getMaxDescent() > 0);
+
         for (int i = 0; i < font.getNumGlyphs(); i++) {
            if (font.canDisplay(i)) {
                //Recuperer la taille de chaqque glyphe et maj de la taille de l'image actuelle
-               CharInfo charInfo = new CharInfo(x, y, fontMetrics.charWidth(i), fontMetrics.getHeight());
+               CharInfo charInfo = new CharInfo(x, y, fontMetrics.charWidth(i), fontMetrics.getHeight(), hasGlobalDescender || this.hasDescender(font, (char) i, frc));
 
                this.charMap.put(i, charInfo);
                this.width = Math.max(x + fontMetrics.charWidth(i), this.width);
@@ -116,6 +122,16 @@ public class FontRenderer {
         buffer.clear();
 
     }
+
+    public boolean hasDescender(Font font, char c, FontRenderContext frc) {
+        String text = Character.toString(c);
+        TextLayout layout = new TextLayout(text, font, frc);
+        Rectangle2D bounds = layout.getBounds();
+
+        FontMetrics fontMetrics = Toolkit.getDefaultToolkit().getFontMetrics(font);
+        return (bounds.getY() + bounds.getHeight() > fontMetrics.getDescent());
+    }
+
 
     public int getTextureId() {
         return textureId;

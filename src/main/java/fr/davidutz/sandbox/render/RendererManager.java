@@ -61,9 +61,6 @@ public class RendererManager {
         this.batch.initBatch();
 
         //Sdf.generateCodepointBitmap('A', "C:/Windows/Fonts/arial.ttf", 32);
-
-        this.testCharInfo = new CharInfo(0, 0, 1, 1);
-        this.testCharInfo.calculateTextureCoordinates(1, 1);
     }
 
     public void renderLoop() {
@@ -74,7 +71,9 @@ public class RendererManager {
         this.renderableElements.forEach(RenderableElement::render);
 
         //Render text
-        this.batch.addString("g", 200, 200, 0.8f, 0xFF00AB0);
+        this.batch.addString("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 10, 400, 0.2f, 000000);
+        this.batch.addString("!\"£$%^&*()_+=-{]", 10, 300, 0.6f, 0xFFAB0);
+        this.batch.addString("abcdefghijklmnopqrstuvwxyz", 10, 200, 0.4f, 0xFF00AB0);
 
         //this.batch.addCharacter(0, 0, 620.0f, this.testCharInfo, 0xEE0102);
 

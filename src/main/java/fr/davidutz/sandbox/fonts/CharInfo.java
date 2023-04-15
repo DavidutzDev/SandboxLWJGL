@@ -7,15 +7,17 @@ public class CharInfo {
     private final int sourceX;
     private final int sourceY;
     private final int width;
-    private int height;
+    private final int height;
+    private final boolean hasDescender;
 
     private final Vector2f[] textureCoordinates = new Vector2f[4];
 
-    public CharInfo(int sourceX, int sourceY, int width, int height) {
+    public CharInfo(int sourceX, int sourceY, int width, int height, boolean hasDescender) {
         this.sourceX = sourceX;
         this.sourceY = sourceY;
         this.width = width;
         this.height = height;
+        this.hasDescender = hasDescender;
     }
 
     public void calculateTextureCoordinates(int fontWidth, int fontHeight) {
@@ -42,6 +44,10 @@ public class CharInfo {
 
     public int getSourceY() {
         return sourceY;
+    }
+
+    public boolean hasDescender() {
+        return this.hasDescender;
     }
 
     public Vector2f[] getTextureCoordinates() {
