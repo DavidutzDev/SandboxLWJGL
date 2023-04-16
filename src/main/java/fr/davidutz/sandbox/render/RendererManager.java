@@ -1,15 +1,11 @@
 package fr.davidutz.sandbox.render;
 
-import fr.davidutz.sandbox.SandboxMain;
 import fr.davidutz.sandbox.Window;
-import fr.davidutz.sandbox.fonts.Batch;
-import fr.davidutz.sandbox.fonts.CharInfo;
-import fr.davidutz.sandbox.fonts.FontRenderer;
+import fr.davidutz.sandbox.fonts.FontManager;
 import fr.davidutz.sandbox.render.elements.RenderableElement;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11C.*;
@@ -20,10 +16,10 @@ public class RendererManager {
     private final ArrayList<RenderableElement> renderableElements = new ArrayList<>();
 
     /* Font */
-    private FontRenderer fontRenderer;
-    private Batch batch;
-    private Shader fontShader;
-    private CharInfo testCharInfo;
+    //private FontRendererOld fontRendererOld;
+    //private Batch batch;
+    //private Shader fontShader;
+    private FontManager fontManager = new FontManager(getClass().getClassLoader().getResourceAsStream("fonts/anton.ttf"), 128);
 
     public RendererManager(Window window) {
         this.window = window;
@@ -44,14 +40,16 @@ public class RendererManager {
         renderableElements.forEach(RenderableElement::loadTexture);
 
         /* Font */
-        this.fontRenderer = new FontRenderer(getClass().getClassLoader().getResourceAsStream("fonts/anton.ttf"), 128);
+        /*this.fontRendererOld = new FontRendererOld(getClass().getClassLoader().getResourceAsStream("fonts/anton.ttf"), 128);
         this.fontShader = new Shader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("shaders/fontShader.glsl")));
 
         this.batch = new Batch();
         this.batch.setShader(this.fontShader);
-        this.batch.setFontRenderer(this.fontRenderer);
-        this.batch.initBatch();
+        this.batch.setFontRenderer(this.fontRendererOld);
+        this.batch.initBatch();*/
 
+        this.fontManager.setAtlasMarginCorrection(3);
+        this.fontManager.initialize(new Shader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("shaders/fontShader.glsl"))));
     }
 
     public void renderLoop() {
@@ -62,15 +60,16 @@ public class RendererManager {
         this.renderableElements.forEach(RenderableElement::render);
 
         //Render text
-        this.batch.addString("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 10, 400, 0.2f, 000000);
+        /*this.batch.addString("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 10, 400, 0.2f, 000000);
         this.batch.addString("!\"£$%^&*()_+=-{]", 10, 300, 0.3f, 0xFFAB0);
         this.batch.addString("abcdefghijklmnopqrstuvwxyz", 10, 200, 0.3f, 0xFF00AB0);
 
         //this.batch.addCharacter(0, 0, 620.0f, this.testCharInfo, 0xEE0102);
 
-        this.batch.flushBatch();
+        this.batch.flushBatch();*/
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        this.fontManager.drawString("Hello World !", 10, 200, 1f, 0xFF00BA);
     }
 
     private void prepareToRender() {

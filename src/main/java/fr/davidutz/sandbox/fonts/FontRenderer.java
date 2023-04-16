@@ -1,179 +1,126 @@
 package fr.davidutz.sandbox.fonts;
 
 import fr.davidutz.sandbox.render.Shader;
-import org.lwjgl.opengl.GL11;
+import org.joml.Matrix4f;
+import org.lwjgl.opengl.*;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.font.FontRenderContext;
-import java.awt.font.TextLayout;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import static org.lwjgl.opengl.GL11C.GL_FLOAT;
 
 public class FontRenderer {
 
-    private final Font font;
-    private final int fontSize;
-    private final Map<Integer, CharInfo> charMap;
+    private final int[] indices = {
+            0, 1, 3,
+            1, 2, 3
+    };
 
-    private int textureId;
-    private int width;
-    private int height;
-    private int lineHeight;
+    public static int BATCH_SIZE = 100;
+    public static int VERTEX_SIZE = 7;
+    public static float DESCENDER_CORRECTION_VALUE = 0.01f;
+    private final float[] vertices = new float[BATCH_SIZE * VERTEX_SIZE];
+    private int size = 0;
+    private final Matrix4f projection = new Matrix4f();
 
-    public FontRenderer(String fontPath, int fontSize) {
-        this.fontSize = fontSize;
-        this.charMap = new HashMap<>();
-        this.font = this.registerFont(fontPath);
+    private int vao;
+    private int vbo;
+    private Shader shader;
+    private FontAtlas atlas;
 
-        this.generateBitmap();
+    public void initRenderer(Shader shader, FontAtlas atlas) {
+        this.shader = shader;
+        this.atlas = atlas;
+
+        this.projection.identity();
+        this.projection.ortho(0, 800, 0, 600, 1f, 100f);
+
+        vao = GL30.glGenVertexArrays();
+        GL30.glBindVertexArray(vao);
+
+        vbo = GL30.glGenBuffers();
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbo);
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, (long) Float.BYTES * VERTEX_SIZE * BATCH_SIZE, GL30.GL_DYNAMIC_DRAW);
+
+        this.generateEbo();
+
+        int stride = 7 * Float.BYTES;
+        GL30.glVertexAttribPointer(0, 2, GL_FLOAT, false, stride, 0);
+        GL30.glEnableVertexAttribArray(0);
+
+        GL30.glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, 2 * Float.BYTES);
+        GL30.glEnableVertexAttribArray(1);
+
+        GL30.glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, 5 * Float.BYTES);
+        GL30.glEnableVertexAttribArray(2);
     }
 
-    public FontRenderer(InputStream fontInputStream, int fontSize) {
-        this.fontSize = fontSize;
-        this.charMap = new HashMap<>();
-        this.font = this.registerFont(fontInputStream);
+    private void generateEbo() {
+        int elementSize = BATCH_SIZE * 3;
+        int[] elementBuffer = new int[elementSize];
 
-        this.generateBitmap();
-    }
-
-    public CharInfo getCharacter(int codePoint) {
-        return this.charMap.getOrDefault(codePoint, new CharInfo(0, 0, 0, 0, false));
-    }
-
-    private void generateBitmap() {
-        Font font = new Font(Objects.requireNonNull(this.font).getName(), Font.PLAIN, this.fontSize);
-
-        //Creation d'une fausse image pour recuperer les infos de la font
-        BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = image.createGraphics();
-        g2d.setFont(font);
-        FontMetrics fontMetrics = g2d.getFontMetrics();
-        FontRenderContext frc = g2d.getFontRenderContext();
-
-        int estimatedWidth = (int) (Math.sqrt(font.getNumGlyphs()) * font.getSize()) + 1;
-        this.width = 0;
-        this.height = fontMetrics.getHeight();
-        this.lineHeight = fontMetrics.getHeight();
-        int x = 0;
-        int y = (int) (fontMetrics.getHeight() * 1.4f);
-
-        boolean hasGlobalDescender = (fontMetrics.getMaxDescent() > 0);
-
-        for (int i = 0; i < font.getNumGlyphs(); i++) {
-           if (font.canDisplay(i)) {
-               //Recuperer la taille de chaqque glyphe et maj de la taille de l'image actuelle
-               CharInfo charInfo = new CharInfo(x, y, fontMetrics.charWidth(i), fontMetrics.getHeight(), hasGlobalDescender || this.hasDescender(font, (char) i, frc));
-
-               this.charMap.put(i, charInfo);
-               this.width = Math.max(x + fontMetrics.charWidth(i), this.width);
-
-               x += charInfo.getWidth();
-               if (x > estimatedWidth) {
-                   x = 0;
-                   y += fontMetrics.getHeight() * 1.4f;
-                   this.height += fontMetrics.getHeight() * 1.4f;
-               }
-           }
-        }
-        this.height += fontMetrics.getHeight() * 1.4f;
-        g2d.dispose();
-
-        //Creation de la texture
-        image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
-        g2d = image.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setFont(font);
-        g2d.setColor(Color.WHITE);
-
-        for (int i = 0; i < font.getNumGlyphs(); i++) {
-            if (font.canDisplay(i)) {
-                CharInfo info = this.charMap.get(i);
-
-                info.calculateTextureCoordinates(this.width, this.height);
-                g2d.drawString("" + (char) i, info.getSourceX(), info.getSourceY());
-            }
-        }
-        g2d.dispose();
-
-        try {
-            File file = new File("temp.png");
-            ImageIO.write(image, "png", file);
-        } catch (IOException e) {
-            e.printStackTrace();
+        for (int i = 0; i < elementSize; i++) {
+            elementBuffer[i] = indices[(i % 6)] + ((i / 6) * 4);
         }
 
-        this.uploadTexture(image);
+        int ebo = GL15.glGenBuffers();
+        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, ebo);
+        GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, elementBuffer, GL15.GL_STATIC_DRAW);
     }
 
-    private void uploadTexture(BufferedImage image) {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(image.getWidth() * image.getHeight() * 4);
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                int rgba = image.getRGB(x, y);
-                byte alphaComponent = (byte) ((rgba >> 24) & 0xFF);
-                buffer.put(alphaComponent);
-                buffer.put(alphaComponent);
-                buffer.put(alphaComponent);
-                buffer.put(alphaComponent);
-            }
-        }
-        buffer.flip();
+    public void addCharacter(float x, float y, float scale, FontCharInfo charInfo, int rgb) {
+        if (size >= BATCH_SIZE - 4) this.flushRenderer();
 
-        this.textureId = GL11.glGenTextures();
+        float r = (float) ((rgb >> 16) & 0xFF) / 255.0f;
+        float g = (float) ((rgb >> 8) & 0xFF) / 255.0f;
+        float b = (float) ((rgb) & 0xFF) / 255.0f;
 
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        float x0 = x;
+        float y0 = y;
+        float x1 = x + scale * charInfo.getWidth();
+        float y1 = y + scale * charInfo.getHeight();
 
-        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
-        buffer.clear();
+        float ux0 = charInfo.getTextureCoordinates()[0].x(); float uy0 = charInfo.getTextureCoordinates()[0].y() + (charInfo.hasDescender() ? DESCENDER_CORRECTION_VALUE : 0f);
+        float ux1 = charInfo.getTextureCoordinates()[1].x(); float uy1 = charInfo.getTextureCoordinates()[1].y();
 
+        int index = this.size * 7;
+        vertices[index] = x1;       vertices[index + 1] = y0;
+        vertices[index + 2] = r;    vertices[index + 3] = g;    vertices[index + 4] = b;
+        vertices[index + 5] = ux1;  vertices[index + 6] = uy0;
+
+        index += 7;
+        vertices[index] = x1;       vertices[index + 1] = y1;
+        vertices[index + 2] = r;    vertices[index + 3] = g;    vertices[index + 4] = b;
+        vertices[index + 5] = ux1;  vertices[index + 6] = uy1;
+
+        index += 7;
+        vertices[index] = x0;       vertices[index + 1] = y1;
+        vertices[index + 2] = r;    vertices[index + 3] = g;    vertices[index + 4] = b;
+        vertices[index + 5] = ux0;  vertices[index + 6] = uy1;
+
+        index += 7;
+        vertices[index] = x0;       vertices[index + 1] = y0;
+        vertices[index + 2] = r;    vertices[index + 3] = g;    vertices[index + 4] = b;
+        vertices[index + 5] = ux0;  vertices[index + 6] = uy0;
+
+        this.size += 4;
     }
 
-    private Font registerFont(String fontPath) {
-        try {
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            Font font = Font.createFont(Font.TRUETYPE_FONT, new File(fontPath));
-            ge.registerFont(font);
-            return font;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+    public void flushRenderer() {
+        //Nettoyage du tampon sur le GPU et upload le contenu CPU + affichage
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, this.vbo);
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, (long) Float.BYTES *  VERTEX_SIZE * BATCH_SIZE, GL30.GL_DYNAMIC_DRAW);
+        GL30.glBufferSubData(GL30.GL_ARRAY_BUFFER, 0, this.vertices);
 
-    private Font registerFont(InputStream fontInputStream) {
-        try {
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            Font font = Font.createFont(Font.TRUETYPE_FONT, fontInputStream);
-            ge.registerFont(font);
-            return font;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+        //Affichage du nouveau tampon
+        this.shader.use();
+        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+        GL11.glBindTexture(GL31.GL_TEXTURE_BUFFER, this.atlas.getAtlasTextureId());
+        this.shader.uploadTexture("uFontTexture", 0);
+        this.shader.uploadMat4f("uProjection", this.projection);
 
-    public boolean hasDescender(Font font, char c, FontRenderContext frc) {
-        String text = Character.toString(c);
-        TextLayout layout = new TextLayout(text, font, frc);
-        Rectangle2D bounds = layout.getBounds();
+        GL30.glBindVertexArray(this.vao);
 
-        FontMetrics fontMetrics = Toolkit.getDefaultToolkit().getFontMetrics(font);
-        return (bounds.getY() + bounds.getHeight() > fontMetrics.getDescent());
-    }
+        GL30.glDrawElements(GL30.GL_TRIANGLES, this.size * 6, GL30.GL_UNSIGNED_INT, 0);
 
-
-    public int getTextureId() {
-        return textureId;
+        //Reset du batch pour un prochain call
+        this.size = 0;
     }
 }

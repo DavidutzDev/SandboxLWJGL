@@ -2,7 +2,7 @@ package fr.davidutz.sandbox.fonts;
 
 import org.joml.Vector2f;
 
-public class CharInfo {
+public class FontCharInfo {
 
     private final int sourceX;
     private final int sourceY;
@@ -12,7 +12,7 @@ public class CharInfo {
 
     private final Vector2f[] textureCoordinates = new Vector2f[4];
 
-    public CharInfo(int sourceX, int sourceY, int width, int height, boolean hasDescender) {
+    public FontCharInfo(int sourceX, int sourceY, int width, int height, boolean hasDescender) {
         this.sourceX = sourceX;
         this.sourceY = sourceY;
         this.width = width;
