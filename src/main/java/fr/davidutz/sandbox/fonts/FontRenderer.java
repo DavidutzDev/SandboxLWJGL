@@ -11,6 +11,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +19,7 @@ import java.util.Objects;
 
 public class FontRenderer {
 
-    private final String fontPath;
+    private final Font font;
     private final int fontSize;
     private final Map<Integer, CharInfo> charMap;
 
@@ -28,9 +29,17 @@ public class FontRenderer {
     private int lineHeight;
 
     public FontRenderer(String fontPath, int fontSize) {
-        this.fontPath = fontPath;
         this.fontSize = fontSize;
         this.charMap = new HashMap<>();
+        this.font = this.registerFont(fontPath);
+
+        this.generateBitmap();
+    }
+
+    public FontRenderer(InputStream fontInputStream, int fontSize) {
+        this.fontSize = fontSize;
+        this.charMap = new HashMap<>();
+        this.font = this.registerFont(fontInputStream);
 
         this.generateBitmap();
     }
@@ -40,7 +49,7 @@ public class FontRenderer {
     }
 
     private void generateBitmap() {
-        Font font = new Font(this.fontPath, Font.PLAIN, this.fontSize);
+        Font font = new Font(Objects.requireNonNull(this.font).getName(), Font.PLAIN, this.fontSize);
 
         //Creation d'une fausse image pour recuperer les infos de la font
         BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
@@ -94,6 +103,13 @@ public class FontRenderer {
         }
         g2d.dispose();
 
+        try {
+            File file = new File("temp.png");
+            ImageIO.write(image, "png", file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         this.uploadTexture(image);
     }
 
@@ -121,6 +137,30 @@ public class FontRenderer {
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
         buffer.clear();
 
+    }
+
+    private Font registerFont(String fontPath) {
+        try {
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            Font font = Font.createFont(Font.TRUETYPE_FONT, new File(fontPath));
+            ge.registerFont(font);
+            return font;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Font registerFont(InputStream fontInputStream) {
+        try {
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            Font font = Font.createFont(Font.TRUETYPE_FONT, fontInputStream);
+            ge.registerFont(font);
+            return font;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public boolean hasDescender(Font font, char c, FontRenderContext frc) {

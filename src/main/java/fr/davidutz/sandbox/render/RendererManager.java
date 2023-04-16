@@ -5,13 +5,8 @@ import fr.davidutz.sandbox.Window;
 import fr.davidutz.sandbox.fonts.Batch;
 import fr.davidutz.sandbox.fonts.CharInfo;
 import fr.davidutz.sandbox.fonts.FontRenderer;
-import fr.davidutz.sandbox.fonts.Sdf;
 import fr.davidutz.sandbox.render.elements.RenderableElement;
-import org.joml.Vector2f;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL31;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,7 +23,6 @@ public class RendererManager {
     private FontRenderer fontRenderer;
     private Batch batch;
     private Shader fontShader;
-    private Shader sdfShader;
     private CharInfo testCharInfo;
 
     public RendererManager(Window window) {
@@ -50,17 +44,14 @@ public class RendererManager {
         renderableElements.forEach(RenderableElement::loadTexture);
 
         /* Font */
-        this.fontRenderer = new FontRenderer("C:/Windows/Arial.ttf", 128);
-        this.fontShader = new Shader("assets/fontShader.glsl");
-        this.sdfShader = new Shader("assets/sdfShader.glsl");
+        this.fontRenderer = new FontRenderer("C:/Windows/Fonts/ALGER.ttf", 128);
+        this.fontShader = new Shader(Objects.requireNonNull(getClass().getClassLoader().getResource("shaders/fontShader.glsl")).toString());
 
         this.batch = new Batch();
         this.batch.setShader(this.fontShader);
-        this.batch.setSdfShader(this.sdfShader);
         this.batch.setFontRenderer(this.fontRenderer);
         this.batch.initBatch();
 
-        //Sdf.generateCodepointBitmap('A', "C:/Windows/Fonts/arial.ttf", 32);
     }
 
     public void renderLoop() {
@@ -71,9 +62,9 @@ public class RendererManager {
         this.renderableElements.forEach(RenderableElement::render);
 
         //Render text
-        this.batch.addString("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 10, 400, 1f, 000000);
-        this.batch.addString("!\"£$%^&*()_+=-{]", 10, 300, 0.6f, 0xFFAB0);
-        this.batch.addString("abcdefghijklmnopqrstuvwxyz", 10, 200, 0.6f, 0xFF00AB0);
+        this.batch.addString("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 10, 400, 0.2f, 000000);
+        this.batch.addString("!\"£$%^&*()_+=-{]", 10, 300, 0.3f, 0xFFAB0);
+        this.batch.addString("abcdefghijklmnopqrstuvwxyz", 10, 200, 0.3f, 0xFF00AB0);
 
         //this.batch.addCharacter(0, 0, 620.0f, this.testCharInfo, 0xEE0102);
 

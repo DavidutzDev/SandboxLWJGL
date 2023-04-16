@@ -30,7 +30,6 @@ public class Batch {
     private int vao;
     private int vbo;
     private Shader shader;
-    private Shader sdfShader;
     private FontRenderer fontRenderer;
 
     private void generateEbo() {
@@ -140,10 +139,8 @@ public class Batch {
 
         //Affichage du nouveau tampon
         this.shader.use();
-        //this.sdfShader.use();
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        //GL11.glBindTexture(GL31.GL_TEXTURE_BUFFER, this.fontRenderer.getTextureId());
-        GL11.glBindTexture(GL31.GL_TEXTURE_BUFFER, Sdf.getTextureId());
+        GL11.glBindTexture(GL31.GL_TEXTURE_BUFFER, this.fontRenderer.getTextureId());
         this.shader.uploadTexture("uFontTexture", 0);
         this.shader.uploadMat4f("uProjection", this.projection);
 
@@ -157,10 +154,6 @@ public class Batch {
 
     public void setShader(Shader shader) {
         this.shader = shader;
-    }
-
-    public void setSdfShader(Shader sdfShader) {
-        this.sdfShader = sdfShader;
     }
 
     public void setFontRenderer(FontRenderer fontRenderer) {

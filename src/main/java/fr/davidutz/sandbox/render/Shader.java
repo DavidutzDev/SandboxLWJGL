@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.FloatBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,8 +27,9 @@ public class Shader {
 
     public Shader(String filepath) {
         this.filepath = filepath;
+        if (this.filepath.startsWith("file:/")) this.filepath = this.filepath.substring(6);
         try {
-            String source = new String(Files.readAllBytes(Paths.get(filepath)));
+            String source = new String(Files.readAllBytes(Paths.get(URLDecoder.decode(this.filepath, "UTF-8"))));
             String[] splitString = source.split("(#type)( )+([a-zA-Z]+)");
 
             // Find the first pattern after #type 'pattern'
