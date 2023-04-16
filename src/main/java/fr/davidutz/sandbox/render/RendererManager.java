@@ -71,9 +71,9 @@ public class RendererManager {
         this.renderableElements.forEach(RenderableElement::render);
 
         //Render text
-        this.batch.addString("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 10, 400, 0.2f, 000000);
+        this.batch.addString("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 10, 400, 1f, 000000);
         this.batch.addString("!\"£$%^&*()_+=-{]", 10, 300, 0.6f, 0xFFAB0);
-        this.batch.addString("abcdefghijklmnopqrstuvwxyz", 10, 200, 0.4f, 0xFF00AB0);
+        this.batch.addString("abcdefghijklmnopqrstuvwxyz", 10, 200, 0.6f, 0xFF00AB0);
 
         //this.batch.addCharacter(0, 0, 620.0f, this.testCharInfo, 0xEE0102);
 

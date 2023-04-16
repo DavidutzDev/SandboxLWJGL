@@ -106,7 +106,7 @@ public class Batch {
         System.out.println("Coord uy1: " + charInfo.getTextureCoordinates()[1].y());
         System.out.println("hasDescender: " + charInfo.hasDescender());
 
-        float ux0 = charInfo.getTextureCoordinates()[0].x(); float uy0 = charInfo.getTextureCoordinates()[0].y() + 0.01f;
+        float ux0 = charInfo.getTextureCoordinates()[0].x(); float uy0 = charInfo.getTextureCoordinates()[0].y() + (charInfo.hasDescender() ? 0.01f : 0f);
         float ux1 = charInfo.getTextureCoordinates()[1].x(); float uy1 = charInfo.getTextureCoordinates()[1].y();
 
         int index = this.size * 7;
