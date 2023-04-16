@@ -44,8 +44,8 @@ public class RendererManager {
         renderableElements.forEach(RenderableElement::loadTexture);
 
         /* Font */
-        this.fontRenderer = new FontRenderer("C:/Windows/Fonts/ALGER.ttf", 128);
-        this.fontShader = new Shader(Objects.requireNonNull(getClass().getClassLoader().getResource("shaders/fontShader.glsl")).toString());
+        this.fontRenderer = new FontRenderer(getClass().getClassLoader().getResourceAsStream("fonts/anton.ttf"), 128);
+        this.fontShader = new Shader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("shaders/fontShader.glsl")));
 
         this.batch = new Batch();
         this.batch.setShader(this.fontShader);

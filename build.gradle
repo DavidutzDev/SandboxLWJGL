@@ -1,4 +1,5 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'java'
 }
 
@@ -7,7 +8,9 @@ project.ext.jomlVersion = "1.10.5"
 project.ext.lwjglNatives = "natives-windows"
 
 group 'fr.davidutz'
-version '1.0-SNAPSHOT'
+version '1.0'
+
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -29,4 +32,14 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
     implementation "org.joml:joml:${jomlVersion}"
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class' : 'fr.davidutz.sandbox.SandboxMain'
+    }
+}
+
+compileJava {
+    options.encoding = "UTF-8"
 }

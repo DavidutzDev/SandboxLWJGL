@@ -4,6 +4,7 @@ import org.joml.*;
 import org.lwjgl.BufferUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -23,13 +24,17 @@ public class Shader {
 
     private String vertexSource;
     private String fragmentSource;
-    private String filepath;
 
-    public Shader(String filepath) {
-        this.filepath = filepath;
-        if (this.filepath.startsWith("file:/")) this.filepath = this.filepath.substring(6);
+    public Shader(InputStream inputStream) {
         try {
-            String source = new String(Files.readAllBytes(Paths.get(URLDecoder.decode(this.filepath, "UTF-8"))));
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            StringBuilder stringBuilder = new StringBuilder();
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                stringBuilder.append(new String(buffer, 0, bytesRead));
+            }
+
+            String source = stringBuilder.toString();
             String[] splitString = source.split("(#type)( )+([a-zA-Z]+)");
 
             // Find the first pattern after #type 'pattern'
@@ -59,7 +64,7 @@ public class Shader {
             }
         } catch(IOException e) {
             e.printStackTrace();
-            assert false : "Error: Could not open file for shader: '" + filepath + "'";
+            assert false : "Error: Could not open file for shader: '" + getClass().getName() + "'";
         }
 
         compile();
@@ -81,7 +86,7 @@ public class Shader {
         int success = glGetShaderi(vertexID, GL_COMPILE_STATUS);
         if (success == GL_FALSE) {
             int len = glGetShaderi(vertexID, GL_INFO_LOG_LENGTH);
-            System.out.println("ERROR: '" + filepath + "'\n\tVertex shader compilation failed.");
+            System.out.println("ERROR: '" + getClass().getName() + "'\n\tVertex shader compilation failed.");
             System.out.println(glGetShaderInfoLog(vertexID, len));
             assert false : "";
         }
@@ -96,7 +101,7 @@ public class Shader {
         success = glGetShaderi(fragmentID, GL_COMPILE_STATUS);
         if (success == GL_FALSE) {
             int len = glGetShaderi(fragmentID, GL_INFO_LOG_LENGTH);
-            System.out.println("ERROR: '" + filepath + "'\n\tFragment shader compilation failed.");
+            System.out.println("ERROR: '" + getClass().getName() + "'\n\tFragment shader compilation failed.");
             System.out.println(glGetShaderInfoLog(fragmentID, len));
             assert false : "";
         }
@@ -111,7 +116,7 @@ public class Shader {
         success = glGetProgrami(shaderProgramID, GL_LINK_STATUS);
         if (success == GL_FALSE) {
             int len = glGetProgrami(shaderProgramID, GL_INFO_LOG_LENGTH);
-            System.out.println("ERROR: '" + filepath + "'\n\tLinking of shaders failed.");
+            System.out.println("ERROR: '" + getClass().getName() + "'\n\tLinking of shaders failed.");
             System.out.println(glGetProgramInfoLog(shaderProgramID, len));
             assert false : "";
         }
